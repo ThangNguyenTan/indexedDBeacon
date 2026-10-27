@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IndexedDBeacon</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-card">
+    <div class="popup-header">
+      <div class="brand">
+        <img src="../icons/icon16.png" class="brand-logo" alt="IndexedDBeacon" />
+        <span class="brand-name">IndexedDBeacon</span>
+      </div>
+      <span class="badge-status">Active</span>
+    </div>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span class="info-label">Inspect Origin:</span>
+        <span class="info-value" id="active-tab-origin">Loading...</span>
+      </div>
+      <div class="shortcut-tip">
+        Press <kbd>F12</kbd> or <kbd>Ctrl+Shift+I</kbd> &rarr; select <strong>IndexedDBeacon</strong> tab
+      </div>
+    </div>
+
+    <div class="popup-actions">
+      <button class="btn btn-secondary btn-block" id="btn-open-demo">
+        Open Demo Playground
+      </button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

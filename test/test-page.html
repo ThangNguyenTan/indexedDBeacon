@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IndexedDBeacon - Interactive Test Playground</title>
+  <style>
+    :root {
+      --bg: #141517;
+      --card-bg: #1a1b1e;
+      --border: #2b2c31;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #6366f1;
+      --cyan: #38bdf8;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px 16px;
+      line-height: 1.4;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    header { text-align: left; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    p.lead { color: var(--text-muted); font-size: 13px; }
+    .instruction-card {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .instruction-card .beacon-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+    kbd {
+      background: #334155;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #475569;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+    }
+    .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+    .card p { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+    .btn-group { display: flex; flex-direction: column; gap: 6px; }
+    button {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    button:hover { background: #222327; }
+    button.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+    button.btn-primary:hover { background: #4f46e5; }
+    button.btn-danger { background: rgba(239, 68, 68, 0.1); border-color: var(--border); color: #f87171; }
+    button.btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+    .log-panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .log-entry { margin-bottom: 4px; color: #a5b4fc; }
+    .log-entry .ts { color: var(--text-muted); margin-right: 8px; }
+    .log-entry.success { color: var(--green); }
+    .log-entry.error { color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>IndexedDBeacon Test &amp; Demo Playground</h1>
+      <p class="lead">Interactive sandbox containing sample databases, multi-type records, indexes, and continuous writes.</p>
+    </header>
+
+    <div class="instruction-card">
+      <div class="beacon-pulse"></div>
+      <div>
+        <strong>Ready to test!</strong> Press <kbd>F12</kbd> (or right click &rarr; <em>Inspect</em>) and click the <strong>IndexedDBeacon</strong> tab in Chrome DevTools to browse and manipulate this page's IndexedDB data.
+        <div style="margin-top: 4px; color: var(--text-muted); font-size: 11px;">
+          Tip: Features Chrome DevTools' familiar Key &amp; Value layout in a single 26px toolbar strip. Click <strong>Pop out</strong> to run in a standalone window, press <kbd>Ctrl+B</kbd> to toggle the sidebar, or toggle between <em>Key-Value</em> and <em>Columns</em> mode!
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Database 1: ShopMart -->
+      <div class="card">
+        <h2>ShopMart_v2</h2>
+        <p>E-commerce database with users, products, orders, Blobs, BigInt, Dates, and multiple indexes.</p>
+        <div class="btn-group">
+          <button class="btn-primary" id="btn-seed-shop">Seed / Reset ShopMart</button>
+          <button id="btn-add-product">Add 1 Random Product</button>
+          <button id="btn-add-user">Add 1 Random User</button>
+          <button class="btn-danger" id="btn-delete-shop">Delete ShopMart DB</button>
+        </div>
+      </div>
+
+      <!-- Database 2: Live Analytics Stream -->
+      <div class="card">
+        <h2>AnalyticsStream</h2>
+        <p>Real-time analytics log. Tests the Live Watch / Auto-refresh feature in DevTools.</p>
+        <div class="btn-group">
+          <button class="btn-primary" id="btn-seed-analytics">Seed Analytics</button>
+          <button id="btn-toggle-live">Start Background Stream (every 2s)</button>
+          <button class="btn-danger" id="btn-delete-analytics">Delete Analytics DB</button>
+        </div>
+      </div>
+
+      <!-- Complex Types Database -->
+      <div class="card">
+        <h2>MediaAndBinaryDB</h2>
+        <p>Specialized database holding images (PNG Blobs), TypedArrays, BigInts, Maps, and Sets.</p>
+        <div class="btn-group">
+          <button class="btn-primary" id="btn-seed-media">Seed Media &amp; Binary</button>
+          <button class="btn-danger" id="btn-delete-media">Delete Media DB</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase;">Activity Log</h3>
+    <div class="log-panel" id="log-panel">
+      <div class="log-entry"><span class="ts">[Ready]</span> Playground loaded. Click a button to seed databases.</div>
+    </div>
+  </div>
+
+  <script>
+    function log(msg, type = '') {
+      const panel = document.getElementById('log-panel');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry ' + type;
+      const ts = new Date().toLocaleTimeString();
+      entry.innerHTML = `<span class="ts">[${ts}]</span> ${msg}`;
+      panel.appendChild(entry);
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    // Helper: Promisify request
+    function req(r) {
+      return new Promise((res, rej) => {
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+    }
+
+    // Generate sample 1x1 or small colored PNG Blob
+    function createColorDotBlob(colorHex) {
+      // 32x32 canvas blob
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = colorHex || '#6366f1';
+      ctx.beginPath();
+      ctx.arc(32, 32, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('IDB', 32, 32);
+
+      return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    // 1. Seed ShopMart_v2
+    async function seedShopMart() {
+      log('Creating and seeding ShopMart_v2...');
+      const openReq = indexedDB.open('ShopMart_v2', 2);
+
+      openReq.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        // Store: users
+        if (!db.objectStoreNames.contains('users')) {
+          const userStore = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+          userStore.createIndex('by_email', 'email', { unique: true });
+          userStore.createIndex('by_role', 'role', { unique: false });
+          userStore.createIndex('by_country', 'country', { unique: false });
+        }
+        // Store: products
+        if (!db.objectStoreNames.contains('products')) {
+          const prodStore = db.createObjectStore('products', { keyPath: 'sku' });
+          prodStore.createIndex('by_category', 'category', { unique: false });
+          prodStore.createIndex('by_price', 'price', { unique: false });
+          prodStore.createIndex('by_tags', 'tags', { unique: false, multiEntry: true });
+        }
+        // Store: orders
+        if (!db.objectStoreNames.contains('orders')) {
+          const orderStore = db.createObjectStore('orders', { keyPath: 'orderId', autoIncrement: true });
+          orderStore.createIndex('by_userId', 'userId', { unique: false });
+          orderStore.createIndex('by_status', 'status', { unique: false });
+        }
+      };
+
+      openReq.onsuccess = async () => {
+        const db = openReq.result;
+        const tx = db.transaction(['users', 'products', 'orders'], 'readwrite');
+
+        const uStore = tx.objectStore('users');
+        const pStore = tx.objectStore('products');
+        const oStore = tx.objectStore('orders');
+
+        // Seed users
+        const sampleUsers = [
+          { name: "Alice Adams", email: "alice@example.com", role: "admin", country: "US", active: true, balance: 125000000000n, joinedAt: new Date("2025-02-10") },
+          { name: "Bob Barker", email: "bob@example.com", role: "editor", country: "UK", active: true, balance: 4500000000n, joinedAt: new Date("2025-06-14") },
+          { name: "Charlie Chen", email: "charlie@example.com", role: "user", country: "CA", active: false, balance: 0n, joinedAt: new Date("2026-01-02") },
+          { name: "Diana Prince", email: "diana@example.com", role: "admin", country: "FR", active: true, balance: 999999999999n, joinedAt: new Date("2024-11-20") },
+          { name: "Evan Wright", email: "evan@example.com", role: "user", country: "DE", active: true, balance: 500000000n, joinedAt: new Date("2026-03-12") }
+        ];
+
+        sampleUsers.forEach(u => uStore.put(u));
+
+        // Seed products
+        const sampleProducts = [
+          { sku: "TECH-101", title: "Wireless Noise-Cancelling Headphones", category: "Electronics", price: 299.99, stock: 45, tags: ["audio", "wireless", "bluetooth"] },
+          { sku: "TECH-102", title: "Mechanical Keyboard RGB", category: "Electronics", price: 149.50, stock: 80, tags: ["gaming", "keyboard", "rgb"] },
+          { sku: "BOOK-201", title: "Designing Data-Intensive Applications", category: "Books", price: 42.00, stock: 120, tags: ["tech", "database", "distributed"] },
+          { sku: "HOME-301", title: "Smart LED Desk Lamp", category: "Home", price: 59.99, stock: 35, tags: ["smart", "lighting", "home"] },
+          { sku: "TECH-103", title: "USB-C Dual 4K Docking Station", category: "Electronics", price: 189.00, stock: 15, tags: ["accessories", "dock", "usb-c"] }
+        ];
+
+        sampleProducts.forEach(p => pStore.put(p));
+
+        // Seed orders
+        oStore.put({ userId: 1, items: [{ sku: "TECH-101", qty: 1 }], total: 299.99, status: "completed", date: new Date() });
+        oStore.put({ userId: 2, items: [{ sku: "BOOK-201", qty: 2 }], total: 84.00, status: "pending", date: new Date() });
+
+        tx.oncomplete = () => {
+          db.close();
+          log('ShopMart_v2 seeded successfully with users, products, and orders.', 'success');
+        };
+      };
+    }
+
+    // 2. Add 1 Random Product
+    async function addRandomProduct() {
+      const db = await new Promise((res, rej) => {
+        const r = indexedDB.open('ShopMart_v2');
+        r.onsuccess = () => res(r.result);
+        r.onerror = rej;
+      });
+
+      const tx = db.transaction('products', 'readwrite');
+      const store = tx.objectStore('products');
+      const id = Math.floor(Math.random() * 9000) + 1000;
+      const categories = ['Electronics', 'Home', 'Books', 'Clothing', 'Sports'];
+      const cat = categories[Math.floor(Math.random() * categories.length)];
+      const prod = {
+        sku: `AUTO-${id}`,
+        title: `Dynamic Item ${id}`,
+        category: cat,
+        price: Number((Math.random() * 200 + 10).toFixed(2)),
+        stock: Math.floor(Math.random() * 100) + 1,
+        tags: ["auto-generated", cat.toLowerCase()],
+        createdAt: new Date().toISOString()
+      };
+
+      store.put(prod);
+      tx.oncomplete = () => {
+        db.close();
+        log(`Added product ${prod.sku} (${prod.title})`, 'success');
+      };
+    }
+
+    // 3. Add 1 Random User
+    async function addRandomUser() {
+      const db = await new Promise((res, rej) => {
+        const r = indexedDB.open('ShopMart_v2');
+        r.onsuccess = () => res(r.result);
+        r.onerror = rej;
+      });
+
+      const tx = db.transaction('users', 'readwrite');
+      const store = tx.objectStore('users');
+      const id = Math.floor(Math.random() * 90000) + 1000;
+      const user = {
+        name: `User ${id}`,
+        email: `user_${id}@example.com`,
+        role: Math.random() > 0.5 ? 'user' : 'editor',
+        country: ['US', 'DE', 'JP', 'BR', 'AU'][Math.floor(Math.random() * 5)],
+        active: true,
+        balance: BigInt(Math.floor(Math.random() * 1000000)),
+        joinedAt: new Date()
+      };
+
+      store.add(user);
+      tx.oncomplete = () => {
+        db.close();
+        log(`Added user ${user.name} (${user.email})`, 'success');
+      };
+    }
+
+    // 4. Seed MediaAndBinaryDB
+    async function seedMedia() {
+      log('Creating MediaAndBinaryDB with Blobs and ArrayBuffers...');
+      const openReq = indexedDB.open('MediaAndBinaryDB', 1);
+
+      openReq.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        db.createObjectStore('media_files');
+      };
+
+      openReq.onsuccess = async () => {
+        const db = openReq.result;
+        const tx = db.transaction('media_files', 'readwrite');
+        const store = tx.objectStore('media_files');
+
+        // Create sample image blob
+        const cyanBlob = await createColorDotBlob('#06b6d4');
+        const purpleBlob = await createColorDotBlob('#8b5cf6');
+
+        // Store Blobs with out-of-line keys
+        store.put({
+          name: "cyan_beacon.png",
+          blob: cyanBlob,
+          metadata: { author: "IndexedDBeacon", version: 1 },
+          createdAt: new Date()
+        }, "img_cyan_dot");
+
+        store.put({
+          name: "purple_beacon.png",
+          blob: purpleBlob,
+          metadata: { author: "IndexedDBeacon", version: 2 },
+          createdAt: new Date()
+        }, "img_purple_dot");
+
+        // Store Uint8Array buffer
+        const buffer = new Uint8Array([0x49, 0x44, 0x42, 0x01, 0xFF, 0xFE, 0x00, 0x7A]);
+        store.put({
+          name: "header_signature.bin",
+          binary: buffer,
+          hash: "a4f89b1c",
+          tags: new Set(["binary", "crypto", "signature"])
+        }, "bin_signature");
+
+        tx.oncomplete = () => {
+          db.close();
+          log('MediaAndBinaryDB seeded with Image Blobs and Binary Buffers.', 'success');
+        };
+      };
+    }
+
+    // 5. Seed AnalyticsStream
+    async function seedAnalytics() {
+      log('Creating AnalyticsStream...');
+      const openReq = indexedDB.open('AnalyticsStream', 1);
+
+      openReq.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        db.createObjectStore('events', { autoIncrement: true });
+      };
+
+      openReq.onsuccess = () => {
+        const db = openReq.result;
+        const tx = db.transaction('events', 'readwrite');
+        const store = tx.objectStore('events');
+        store.add({ event: "page_view", url: window.location.href, ts: Date.now() });
+        store.add({ event: "app_initialized", userAgent: navigator.userAgent, ts: Date.now() });
+        tx.oncomplete = () => {
+          db.close();
+          log('AnalyticsStream initialized.', 'success');
+        };
+      };
+    }
+
+    // 6. Toggle Live Stream
+    let liveTimer = null;
+    function toggleLiveStream() {
+      const btn = document.getElementById('btn-toggle-live');
+      if (liveTimer) {
+        clearInterval(liveTimer);
+        liveTimer = null;
+        btn.textContent = 'Start Background Stream (every 2s)';
+        log('Background event stream stopped.');
+      } else {
+        btn.textContent = 'Stop Background Stream [ACTIVE]';
+        log('Background event stream started (writing to AnalyticsStream every 2s)...', 'success');
+        liveTimer = setInterval(async () => {
+          try {
+            const db = await new Promise((res, rej) => {
+              const r = indexedDB.open('AnalyticsStream');
+              r.onsuccess = () => res(r.result);
+              r.onerror = rej;
+            });
+            const tx = db.transaction('events', 'readwrite');
+            const store = tx.objectStore('events');
+            const events = ['click', 'scroll', 'fetch', 'heartbeat', 'mouse_move'];
+            const evtName = events[Math.floor(Math.random() * events.length)];
+            store.add({
+              event: evtName,
+              x: Math.floor(Math.random() * 1920),
+              y: Math.floor(Math.random() * 1080),
+              timestamp: new Date().toISOString()
+            });
+            tx.oncomplete = () => {
+              db.close();
+              log(`Live Stream wrote event "${evtName}"`);
+            };
+          } catch (e) {
+            log('Stream write error: ' + e.message, 'error');
+          }
+        }, 2000);
+      }
+    }
+
+    // Delete DB helper
+    function deleteDB(name) {
+      log(`Deleting database "${name}"...`);
+      const req = indexedDB.deleteDatabase(name);
+      req.onsuccess = () => log(`Database "${name}" deleted.`, 'success');
+      req.onerror = () => log(`Failed to delete "${name}".`, 'error');
+      req.onblocked = () => log(`Delete "${name}" blocked by open connections.`, 'error');
+    }
+
+    // Bind Buttons
+    document.getElementById('btn-seed-shop').addEventListener('click', seedShopMart);
+    document.getElementById('btn-add-product').addEventListener('click', addRandomProduct);
+    document.getElementById('btn-add-user').addEventListener('click', addRandomUser);
+    document.getElementById('btn-delete-shop').addEventListener('click', () => deleteDB('ShopMart_v2'));
+
+    document.getElementById('btn-seed-analytics').addEventListener('click', seedAnalytics);
+    document.getElementById('btn-toggle-live').addEventListener('click', toggleLiveStream);
+    document.getElementById('btn-delete-analytics').addEventListener('click', () => deleteDB('AnalyticsStream'));
+
+    document.getElementById('btn-seed-media').addEventListener('click', seedMedia);
+    document.getElementById('btn-delete-media').addEventListener('click', () => deleteDB('MediaAndBinaryDB'));
+
+    // Auto seed on initial load
+    seedShopMart();
+    seedAnalytics();
+    seedMedia();
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IndexedDBeacon</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- DevTools Top Strip (Height 26px) -->
+    <header class="app-header">
+      <div class="header-left">
+        <button class="header-icon-btn" id="btn-toggle-sidebar" title="Toggle Sidebar (Ctrl+B)">
+          <svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5v-11zM2.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5H5v-12H2.5zm3.5 0v12h7.5a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5H6z"/></svg>
+        </button>
+        <div class="app-brand">
+          <img src="../icons/icon16.png" class="brand-icon" alt="" />
+          <span class="brand-title">IndexedDBeacon</span>
+        </div>
+        <div class="origin-pill" title="Target Origin">
+          <span class="origin-dot"></span>
+          <span class="origin-text" id="target-origin">Connecting...</span>
+        </div>
+        <div class="store-crumb-badge" id="header-store-badge" style="display: none;">
+          <span class="crumb-slash">/</span>
+          <span class="crumb-db" id="crumb-db-name">DB</span>
+          <span class="crumb-slash">/</span>
+          <span class="crumb-store" id="crumb-store-name">Store</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Stale Data Indicator Pill (Click to refresh when IDB changes on page) -->
+        <button class="stale-notify-pill" id="stale-notify-pill" style="display: none;" title="Database data changed on page. Click to refresh.">
+          <span class="stale-dot"></span>
+          <span class="stale-text">Data Stale · Refresh</span>
+        </button>
+
+        <button class="header-btn" id="btn-popout" title="Open in Standalone Dedicated Window">
+          <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1h-3zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5zM.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5z"/><path fill="currentColor" d="M4 4.5A1.5 1.5 0 0 1 5.5 3h5A1.5 1.5 0 0 1 12 4.5v5a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 4 9.5v-5zm1.5-.5a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-5a.5.5 0 0 0-.5-.5h-5z"/></svg>
+          <span id="popout-btn-text">Pop out</span>
+        </button>
+
+        <button class="header-icon-btn" id="theme-toggle-btn" title="Toggle Dark/Light Theme">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Overlay when popout window is active -->
+    <div class="popout-overlay" id="popout-active-overlay" style="display: none;">
+      <div class="popout-card">
+        <div class="popout-icon">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h3>IndexedDBeacon is running in a separate window</h3>
+        <p>The inspector is detached so your web application has full screen space.</p>
+        <div class="popout-card-actions">
+          <button class="btn btn-sm btn-primary" id="btn-focus-popout">Focus Window</button>
+          <button class="btn btn-sm btn-secondary" id="btn-dock-back">Dock Back Here</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Workspace Layout: 3-Pane Developer Layout -->
+    <main class="app-main" id="app-main">
+      <!-- Top Section: Database Tree (Left) + Record Inspector (Right) -->
+      <div class="workspace-top" id="workspace-top">
+        <!-- Top-Left: Database Tree Explorer -->
+        <aside class="sidebar-panel" id="sidebar-panel"></aside>
+
+        <!-- Top Splitter (Column Resizer) -->
+        <div class="panel-resizer resizer-horizontal" id="sidebar-resizer" title="Drag to resize database sidebar"></div>
+
+        <!-- Top-Right: Individual Record Inspector -->
+        <section class="inspector-panel" id="inspector-panel"></section>
+      </div>
+
+      <!-- Middle Splitter (Row Resizer between Top and Bottom) -->
+      <div class="panel-resizer resizer-vertical" id="workspace-resizer" title="Drag to resize top/bottom panels"></div>
+
+      <!-- Bottom Section: Records Table & Unified Toolbar -->
+      <div class="workspace-bottom" id="workspace-bottom">
+        <section class="content-panel" id="content-panel">
+          <div class="content-empty-view" id="content-empty-view">
+            <div class="empty-state-card">
+              <h3>No Object Store Selected</h3>
+              <p>Select a database and object store from the sidebar above to inspect records.</p>
+            </div>
+          </div>
+
+          <div class="store-view" id="store-view" style="display: none;">
+            <!-- Unified Single 26px DevTools Toolbar (Clean, High Density, Cohesive Aesthetics) -->
+            <div class="store-unified-toolbar">
+              <div class="toolbar-group-left">
+                <!-- Refresh Button (Crisp single-stroke SVG with proper contrast) -->
+                <button class="btn-tool" id="btn-refresh" title="Refresh records (Ctrl+R)">
+                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 7.5A6.5 6.5 0 1 0 12.5 12" />
+                    <polyline points="14 3.5 14 7.5 10 7.5" />
+                  </svg>
+                  <span class="refresh-stale-dot" id="refresh-stale-dot" style="display: none;" title="Data is stale"></span>
+                </button>
+
+                <!-- Insert Record (Icon-only) -->
+                <button class="btn-tool" id="btn-add-record" title="Insert New Record">
+                  <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>
+                </button>
+
+                <!-- Clear Store (Icon-only) -->
+                <button class="btn-tool btn-tool-danger-subtle" id="btn-clear-store" title="Clear all records in store">
+                  <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill="currentColor" fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                </button>
+
+                <!-- Batch Delete (Shown only when records selected) -->
+                <button class="btn-tool btn-tool-danger" id="btn-batch-delete" title="Delete Selected Records" style="display: none;">
+                  <svg viewBox="0 0 16 16" width="11" height="11"><path fill="currentColor" d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill="currentColor" fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                  <span id="batch-delete-count">0</span>
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- Index Select (Compact) -->
+                <select class="form-select select-index" id="select-index" title="Select index">
+                  <option value="">(Primary Key)</option>
+                </select>
+
+                <!-- Sort Toggle (Icon-only: ASC / DESC) -->
+                <button class="btn-tool" id="btn-toggle-sort" title="Sort: Ascending (click to toggle Descending)">
+                  <svg id="icon-sort-asc" viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M7.247 4.86l-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/></svg>
+                  <svg id="icon-sort-desc" viewBox="0 0 16 16" width="12" height="12" style="display:none;"><path fill="currentColor" d="M7.247 11.14l-4.796-5.481c-.566-.647-.106-1.659.753-1.659h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>
+                </button>
+
+                <!-- Key Range Toggle (Icon-only) -->
+                <button class="btn-tool" id="btn-key-range-toggle" title="Filter by Key Range">
+                  <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.293V13.5a.5.5 0 0 1-.276.447l-3 1.5A.5.5 0 0 1 6 15v-6.707L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/></svg>
+                  <span class="range-active-indicator" id="range-active-dot" style="display:none;">•</span>
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- Search / Filter input (Compact) -->
+                <div class="tool-search-box">
+                  <svg viewBox="0 0 16 16" width="11" height="11"><path fill="currentColor" d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                  <input type="text" class="tool-search-input" id="search-records-input" placeholder="Filter (Ctrl+F)..." spellcheck="false" />
+                  <button type="button" class="btn-clear-search" id="btn-clear-search" title="Clear filter (Esc)" style="display: none;">&times;</button>
+                </div>
+              </div>
+
+              <div class="toolbar-group-right">
+                <!-- View Mode Toggle (Icon-only) -->
+                <button class="btn-tool" id="btn-toggle-viewmode" title="Toggle Mode: Key-Value / Table Columns">
+                  <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm1 2v2h4V4H1zm5 0v2h4V4H6zm5 0v2h4V4h-4zM1 7v2h4V7H1zm5 0v2h4V7H6zm5 0v2h4V7h-4zM1 10v3a1 1 0 0 0 1 1h3v-4H1zm5 4h4v-4H6v4zm5 0h3a1 1 0 0 0 1-1v-3h-4v4zM1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1H1z"/></svg>
+                </button>
+
+                <!-- Export (Icon-only) -->
+                <button class="btn-tool" id="btn-export-store" title="Export records (JSON / CSV)">
+                  <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10.4a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V10.4a.5.5 0 0 1 .5-.5z"/><path fill="currentColor" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                </button>
+
+                <!-- Import (Icon-only) -->
+                <button class="btn-tool" id="btn-import-store" title="Import records (JSON)">
+                  <svg viewBox="0 0 16 16" width="12" height="12"><path fill="currentColor" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10.4a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V10.4a.5.5 0 0 1 .5-.5z"/><path fill="currentColor" d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- Record Count Badge (Infinite Scrolling) -->
+                <span class="total-entries-badge" id="badge-record-count">0 records</span>
+              </div>
+            </div>
+
+            <!-- Key Range Popover / Panel (Collapsible) -->
+            <div class="key-range-drawer" id="key-range-drawer" style="display: none;">
+              <div class="key-range-inputs">
+                <div class="range-field">
+                  <label>Range:</label>
+                  <select class="form-select select-range-type" id="select-range-type">
+                    <option value="none">No Range (All)</option>
+                    <option value="only">Exact Key (only)</option>
+                    <option value="lower">Lower Bound (&gt;=)</option>
+                    <option value="upper">Upper Bound (&lt;=)</option>
+                    <option value="bound">Between (lower &amp; upper)</option>
+                  </select>
+                </div>
+                <div class="range-field" id="range-val-field">
+                  <input type="text" class="form-input range-input" id="range-val-input" placeholder="Exact key value" />
+                </div>
+                <div class="range-field" id="range-lower-field" style="display:none;">
+                  <input type="text" class="form-input range-input" id="range-lower-input" placeholder="Min key" />
+                </div>
+                <div class="range-field" id="range-upper-field" style="display:none;">
+                  <input type="text" class="form-input range-input" id="range-upper-input" placeholder="Max key" />
+                </div>
+                <button class="btn btn-xs btn-primary" id="btn-apply-range">Apply</button>
+                <button class="btn btn-xs btn-secondary" id="btn-clear-range">Reset</button>
+              </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="table-scroll-area" id="table-container"></div>
+
+            <!-- Ultra-slim Status Footer (Height 20px) -->
+            <footer class="store-status-footer">
+              <div class="status-left">
+                <span id="status-meta-info">KeyPath: id · AutoIncrement: false</span>
+                <span class="status-divider">|</span>
+                <span id="pagination-info">Showing 0–0 of 0</span>
+              </div>
+              <div class="status-right">
+                <span id="storage-usage-text"></span>
+              </div>
+            </footer>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Global Modals & Toast Containers -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>
